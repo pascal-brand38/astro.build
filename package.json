@@ -39,6 +39,7 @@
 		"astro": "^4.14.6",
 		"astro-expressive-code": "^0.35.6",
 		"astro-icon": "^0.8.2",
+		"axios": "^1.7.7",
 		"chart.js": "4.4.1",
 		"cobe": "^0.6.3",
 		"date-fns": "^2.30.0",

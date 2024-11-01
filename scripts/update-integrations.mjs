@@ -199,14 +199,103 @@ Updated: ${existingIntegrations.size - deprecatedIntegrations.length} integratio
 	console.info(stats);
 }
 
+import https from 'https'
+import axios from 'axios'
+
+// timeout on Check https://www.npmjs.com/package/@lightnet/decap-admin ?
+const checkUrl = async (url, urlsStatus) => {
+  urlsStatus.total ++
+
+  // console.log(`Check ${url}`)
+  try {
+    await axios.head(url, {timeout: 10000});
+  } catch (error) {
+    if (!error.response) {
+      // can be the case when the hostname does not exist
+      // console.log(error)
+      urlsStatus.timeout.push(url)
+      return false
+    }
+    // console.log(error)
+    if (error.response.status === 404) {
+      urlsStatus.error404.push(url)
+      return false
+    }
+    if (error.response.status >= 400) {
+      urlsStatus.errorOther.push(url)
+      return false
+    }
+  }
+  urlsStatus.ok.push(url)
+  return true
+}
+
+
+// async function checkUrl(url) {
+//   function httpRequest(url) {
+//     return new Promise(function(resolve, reject) {
+//       const req = https.request(url, { method: 'HEAD' }, function(r) {
+//         console.log('PASCAL')
+//         console.log(JSON.stringify(r.headers));
+//         console.log('PASCAL')
+//         return resolve()
+//       });
+//       req.end();
+//     })
+//   }
+//   console.log(`Check ${url}`)
+//   await httpRequest(url)
+// }
+
 async function safeUpdateExistingIntegrations() {
 	const entries = await getIntegrationFiles();
+  // const entries = [ 'src/content/integrations/astro-sprite.md' ]
 
+  let index = 0
+  let urlsStatus = {
+    total: 0,
+    ok: [],
+    error404: [],
+    timeout: [],
+    errorOther: [],
+  }
 	for (const entry of entries) {
+    if (index % 100 === 0) {
+      console.log(`Checking index ${index}`)
+    }
+    index = index + 1
+
 		const { data } = matter.read(entry);
+    const verbose = (data.name === 'astro-sprite')
+
+    const exits = await checkUrl(data.homepageUrl, urlsStatus)
+    if (!exits) {
+      console.log(`Cannot access homepage of ${data.name}: ${data.homepageUrl}`)
+    }
+
+    // {
+    //   name: 'astro-sprite',
+    //   title: 'astro-sprite',
+    //   description: 'Sprite generation (png, webp, avif...) dedicated Astro framework',
+    //   categories: [ 'css+ui', 'media', 'recent' ],
+    //   npmUrl: 'https://www.npmjs.com/package/astro-sprite',
+    //   repoUrl: 'https://github.com/pascal-brand38/astro-sprite',
+    //   homepageUrl: 'https://github.com/pascal-brand38/astro-sprite#readme',
+    //   badge: 'new',
+    //   downloads: 277
+    // }
+
+
+    // if (verbose) {
+    //   console.log(entry)
+    //   console.log(data)
+    // }
 
 		// only override NPM download stats for safe updates
+    if (false){
+    console.log('before fetchDownloadsForPackage')
 		const downloads = await fetchDownloadsForPackage(data.name);
+    console.log('after fetchDownloadsForPackage')
 
 		const frontmatter = yaml.stringify({
 			...data,
@@ -220,6 +309,13 @@ async function safeUpdateExistingIntegrations() {
 ${frontmatter}---\n`,
 		);
 	}
+  }
+  console.log(`Number of checked urls: ${urlsStatus.total}`)
+  console.log(`Number of ok:           ${urlsStatus.ok.length}`)
+  console.log(`Number of timeout:      ${urlsStatus.timeout.length}`)
+  console.log(`Number of 404:          ${urlsStatus.error404.length}`)
+  console.log(`Number of other errors: ${urlsStatus.errorOther.length}`)
+  console.log(error)
 }
 
 const args = process.argv.slice(2);
@@ -231,3 +327,4 @@ if (args.includes('--unsafe')) {
 } else {
 	await safeUpdateExistingIntegrations();
 }
+console.log('DONE')
