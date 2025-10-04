@@ -47,8 +47,8 @@ const IconBackgrounds = [
 			<header class="flex items-center justify-between">
 				<div
 					class:list={[
-						'flex h-14 w-14 items-center justify-center rounded-full bg-white p-3',
-						!integration.data.image && ['icon', randomFromArray(IconBackgrounds)],
+						'flex h-14 w-14 items-center justify-center rounded-full',
+						!integration.data.image && ['bg-white p-3 icon', randomFromArray(IconBackgrounds)],
 					]}
 				>
 					{
@@ -56,7 +56,10 @@ const IconBackgrounds = [
 							<img
 								src={integration.data.image}
 								alt=""
-								class="h-full w-full object-contain object-center"
+								class:list={[
+									"h-full w-full object-contain object-center",
+									integration.data.image && [ 'icon-image' ],
+								]}
 							/>
 						) : (
 							<Icon name={iconName} class="h-full w-full text-astro-gray-700" />
@@ -98,5 +101,9 @@ const IconBackgrounds = [
 		@apply ml-1 inline-block h-5 w-5 translate-y-[2px] bg-contain bg-no-repeat;
 		content: '';
 		background-image: url(/assets/official.svg);
+	}
+
+	.icon-image {
+		border-radius:50%;
 	}
 </style>
