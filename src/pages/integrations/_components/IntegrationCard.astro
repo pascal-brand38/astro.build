@@ -47,8 +47,8 @@ const IconBackgrounds = [
 			<header class="flex items-center justify-between">
 				<div
 					class:list={[
-						'flex h-14 w-14 items-center justify-center rounded-full bg-white p-3',
-						!integration.data.image && ['icon', randomFromArray(IconBackgrounds)],
+						'flex h-14 w-14 items-center justify-center rounded-full',
+						!integration.data.image && ['bg-white p-3 icon', randomFromArray(IconBackgrounds)],
 					]}
 				>
 					{
